@@ -30,6 +30,7 @@ coverage/
 *.tmp
 *.temp
 .cache/
+.electron-userdata/
 
 # Electron
 *.asar

@@ -214,7 +214,9 @@ body {
 .output-stderr .text { color: #f48771; }
 .output-error .text { color: #f48771; font-weight: bold; }
 .output-info .text { color: #dcdcaa; font-style: italic; }
+.output-warn .text { color: #d7ba7d; }
 .output-user .text { color: #ce9178; }
+.output-debug .text { color: #7f848e; font-size: 12px; }
 
 .welcome-message {
   color: #808080;

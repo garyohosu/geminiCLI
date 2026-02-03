@@ -40,11 +40,20 @@ class GeminiCLIManager extends EventEmitter {
     this.autoRestart = options.autoRestart || false;
     this.restartDelay = options.restartDelay || 1000;
     this.maxRestarts = options.maxRestarts || 3;
+    this.defaultModel = options.model || process.env.GEMINI_CLI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    this.fallbackModel = options.fallbackModel || 'gemini-2.5-flash-lite';
+    this.requestTimeoutMs = Number.isFinite(Number(process.env.GEMINI_CLI_TIMEOUT_MS))
+      ? Number(process.env.GEMINI_CLI_TIMEOUT_MS)
+      : (options.requestTimeoutMs || 90000);
 
     this.process = null;
     this.state = ProcessState.STOPPED;
     this.restartCount = 0;
     this.outputBuffer = '';
+  }
+
+  emitDebug(message, meta) {
+    this.emit('debug', { message, meta, ts: new Date().toISOString() });
   }
 
   /**
@@ -81,9 +90,15 @@ class GeminiCLIManager extends EventEmitter {
         this.process = spawn(this.cliPath, [], {
           cwd: this.workspace,
           shell: true,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          windowsHide: false,
           env: {
             ...process.env,
-            // 必要に応じて環境変数を設定
+            // 強制的に色なし出力（パース用）
+            NO_COLOR: '1',
+            FORCE_COLOR: '0',
+            // TTY を偽装しない
+            TERM: 'dumb'
           }
         });
 
@@ -226,6 +241,150 @@ class GeminiCLIManager extends EventEmitter {
     } catch (err) {
       this.emit('error', err);
       return false;
+    }
+  }
+
+  /**
+   * 単発のプロンプトを実行（非対話モード）
+   * @param {string} prompt - 実行するプロンプト
+   * @returns {Promise<string>} 出力結果
+   */
+  async executePrompt(prompt) {
+    const baseArgs = [
+      '-p',
+      prompt,
+      '--output-format',
+      'text',
+      // 非対話モードでは拡張機能を無効化して長時間常駐を避ける
+      '--extensions',
+      'none',
+      // プレビューを避けるため安定版モデルを指定
+      '--model',
+      this.defaultModel
+    ];
+
+    const redactArgs = (args) => {
+      const redacted = [...args];
+      for (let i = 0; i < redacted.length; i++) {
+        if (redacted[i] === '-p' || redacted[i] === '--prompt') {
+          const next = redacted[i + 1];
+          const len = typeof next === 'string' ? next.length : 0;
+          redacted[i + 1] = `<prompt:${len}>`;
+          i += 1;
+        }
+      }
+      return redacted;
+    };
+
+    const runPrompt = (extraArgs = []) => new Promise((resolve, reject) => {
+      let output = '';
+      let errorOutput = '';
+      const args = [...baseArgs, ...extraArgs];
+      let settled = false;
+      let timeoutId = null;
+
+      this.emitDebug('executePrompt:spawn', { args: redactArgs(args) });
+      const proc = spawn(this.cliPath, args, {
+        cwd: this.workspace,
+        shell: true,
+        env: {
+          ...process.env,
+          NO_COLOR: '1',
+          FORCE_COLOR: '0'
+        }
+      });
+
+      proc.on('spawn', () => {
+        this.emitDebug('executePrompt:spawned', { pid: proc.pid });
+      });
+
+      const finalize = (err) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutId) clearTimeout(timeoutId);
+        proc.stdout?.removeListener('data', onStdout);
+        proc.stderr?.removeListener('data', onStderr);
+        if (err) reject(err);
+        else resolve(output);
+      };
+
+      const onStdout = (data) => {
+        if (settled) return;
+        const text = data.toString();
+        output += text;
+        this.emit('stdout', text);
+        this.emit('output', { type: 'stdout', data: text });
+      };
+
+      const onStderr = (data) => {
+        if (settled) return;
+        const text = data.toString();
+        errorOutput += text;
+        this.emit('stderr', text);
+        this.emit('output', { type: 'stderr', data: text });
+      };
+
+      timeoutId = setTimeout(() => {
+        this.emitDebug('executePrompt:timeout', { timeoutMs: this.requestTimeoutMs });
+        const timeoutError = new Error(`Request timed out after ${this.requestTimeoutMs}ms`);
+        timeoutError.code = 'REQUEST_TIMEOUT';
+        try {
+          if (process.platform === 'win32' && proc.pid) {
+            spawn('taskkill', ['/pid', String(proc.pid), '/T', '/F']);
+          }
+        } catch (e) {
+          this.emitDebug('executePrompt:timeout:taskkill:error', { message: e.message });
+        }
+        try {
+          proc.kill('SIGKILL');
+        } catch (e) {
+          // ignore
+        }
+        finalize(timeoutError);
+      }, this.requestTimeoutMs);
+
+      proc.stdout.on('data', onStdout);
+      proc.stderr.on('data', onStderr);
+
+      proc.on('close', (code) => {
+        if (settled) {
+          this.emitDebug('executePrompt:close', { code, late: true });
+          return;
+        }
+        this.emitDebug('executePrompt:close', { code });
+        if (code === 0) {
+          finalize();
+        } else {
+          finalize(new Error(errorOutput || `Process exited with code ${code}`));
+        }
+      });
+
+      proc.on('error', (err) => {
+        this.emitDebug('executePrompt:error', { message: err.message });
+        finalize(err);
+      });
+    });
+
+    try {
+      this.emitDebug('executePrompt:start', { length: prompt ? prompt.length : 0 });
+      return await runPrompt();
+    } catch (err) {
+      const message = err?.message || '';
+      const isCapacityError = /MODEL_CAPACITY_EXHAUSTED|No capacity available|RESOURCE_EXHAUSTED|status 429|exhausted your capacity|quota will reset|rateLimitExceeded/i.test(message);
+      if (!isCapacityError) {
+        throw err;
+      }
+
+      // 容量枯渇時は軽量モデルにフォールバック
+      const fallbackModel = this.fallbackModel;
+      if (!fallbackModel || fallbackModel === this.defaultModel) {
+        throw err;
+      }
+      this.emitDebug('executePrompt:fallback', { model: fallbackModel });
+      this.emit('stderr', `Model capacity exhausted. Falling back to ${fallbackModel}...`);
+      this.emit('output', { type: 'stderr', data: `Model capacity exhausted. Falling back to ${fallbackModel}...\n` });
+
+      return runPrompt(['--model', fallbackModel]);
     }
   }
 

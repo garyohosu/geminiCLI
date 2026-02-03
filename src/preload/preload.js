@@ -93,7 +93,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // アプリケーション情報
   app: {
     getVersion: () => '0.1.0',
-    getPlatform: () => process.platform
+    getPlatform: () => process.platform,
+    onLog: (callback) => {
+      const listener = (event, data) => callback(data);
+      ipcRenderer.on('app:log', listener);
+      return () => ipcRenderer.removeListener('app:log', listener);
+    }
   }
 });
 

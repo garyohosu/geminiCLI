@@ -32,8 +32,40 @@ const elements = {
 // アプリケーション状態
 const state = {
   workspace: null,
-  geminiRunning: false
+  geminiRunning: false,
+  pendingRequestId: null,
+  pendingStartedAt: null
 };
+
+// Gemini CLI のノイズログを抑制するためのパターン
+const SUPPRESSED_OUTPUT_PATTERNS = [
+  /Loaded cached credentials\./i,
+  /Hook registry initialized with \d+ hook entries/i,
+  /I have completed your last request/i
+];
+
+const RATE_LIMIT_PATTERNS = [
+  /Attempt\s+\d+\s+failed/i,
+  /status\s+429/i,
+  /MODEL_CAPACITY_EXHAUSTED/i,
+  /No capacity available for model/i,
+  /RESOURCE_EXHAUSTED/i,
+  /exhausted your capacity/i,
+  /quota will reset/i,
+  /rateLimitExceeded/i
+];
+
+const TIMEOUT_PATTERNS = [
+  /Request timed out/i,
+  /REQUEST_TIMEOUT/i
+];
+
+// DevTools 由来の既知ノイズを抑制
+window.addEventListener('error', (event) => {
+  if (event?.message && event.message.includes('dragEvent is not defined')) {
+    event.preventDefault();
+  }
+});
 
 /**
  * 初期化
@@ -91,6 +123,12 @@ function setupGeminiEventHandlers() {
   // 出力受信
   window.electronAPI.gemini.onOutput((data) => {
     appendOutput(data.data, data.type);
+  });
+
+  window.electronAPI.app.onLog((data) => {
+    if (!data || !data.message) return;
+    const meta = data.meta ? ` ${JSON.stringify(data.meta)}` : '';
+    appendOutputLine(`[SYS] ${data.message}${meta}`, 'debug');
   });
 
   // 状態変化
@@ -184,10 +222,21 @@ async function handleSend() {
   // 送信内容を表示
   appendOutput(`> ${message}`, 'user');
 
+  // リクエスト開始ログ
+  state.pendingRequestId = (state.pendingRequestId || 0) + 1;
+  state.pendingStartedAt = Date.now();
+  appendOutputLine(`[SYS] request ${state.pendingRequestId} start`, 'debug');
+
   // 送信
   const result = await window.electronAPI.gemini.send(message);
   if (!result.success) {
     appendOutput(`送信に失敗しました: ${result.error}`, 'error');
+  }
+
+  if (state.pendingStartedAt) {
+    const elapsedMs = Date.now() - state.pendingStartedAt;
+    appendOutputLine(`[SYS] request ${state.pendingRequestId} end (${(elapsedMs / 1000).toFixed(1)}s)`, 'debug');
+    state.pendingStartedAt = null;
   }
 }
 
@@ -234,6 +283,40 @@ function updateStatus(status) {
  * 出力を追加
  */
 function appendOutput(text, type = 'stdout') {
+  if (!text) return;
+
+  if (SUPPRESSED_OUTPUT_PATTERNS.some((pattern) => pattern.test(text))) {
+    return;
+  }
+
+  if (/Falling back to/i.test(text)) {
+    appendOutputLine(text, 'warn');
+    return;
+  }
+
+  if (TIMEOUT_PATTERNS.some((pattern) => pattern.test(text))) {
+    appendOutputLine('Gemini API 応答がタイムアウトしました。しばらく待って再試行してください。', 'warn');
+    return;
+  }
+
+  if (RATE_LIMIT_PATTERNS.some((pattern) => pattern.test(text))) {
+    const attemptMatch = text.match(/Attempt\s+(\d+)\s+failed/i);
+    const modelMatch = text.match(/model\s+([a-z0-9.-]+)/i);
+    const retryMatch = text.match(/Retrying after\s+([0-9.]+)ms/i);
+    const resetMatch = text.match(/reset after\s+([0-9.]+)s/i);
+    const parts = ['Gemini API が混雑/制限中'];
+    if (modelMatch) parts.push(`model: ${modelMatch[1]}`);
+    if (attemptMatch) parts.push(`再試行 ${attemptMatch[1]} 回目`);
+    if (retryMatch) parts.push(`再試行まで ${retryMatch[1]}ms`);
+    if (resetMatch) parts.push(`リセットまで ${resetMatch[1]}s`);
+    appendOutputLine(parts.join(' / '), 'warn');
+    return;
+  }
+
+  appendOutputLine(text, type);
+}
+
+function appendOutputLine(text, type) {
   const div = document.createElement('div');
   div.className = `output-line output-${type}`;
 

@@ -75,6 +75,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - IPC 通信の設定
   - 最小限のチャットUI
 
+### Changed
+- Dev モード時に Electron の userData をプロジェクト配下の `.electron-userdata` に固定し、Windows のキャッシュ権限エラーを回避
+- `.electron-userdata/` を Git 管理対象外に追加
+- 非対話プロンプト実行時に `--extensions none` と `--output-format text` を付与し、拡張の常駐によるハングを回避
+- UI で表示する Gemini CLI のノイズログ（認証キャッシュ/Hook 初期化）を抑制
+- 429 (MODEL_CAPACITY_EXHAUSTED) で失敗した場合は安定版モデルへフォールバックし、UI では短い警告に要約
+- DevTools 由来の `dragEvent is not defined` ノイズを抑制
+- フリーズ調査用に main/renderer の進行ログを追加し、`app:log` を UI に表示
+- 容量/クォータ枯渇のリトライログを要約表示し、フォールバック判定に追加
+- 非対話実行のデフォルトモデルを安定版 `gemini-2.5-flash` に固定し、タイムアウトで中断する仕組みを追加
+- タイムアウト後の遅延出力を抑止し、プロンプト内容はログで伏字化
+- GEMINI_E2E=1 でのみ実行される Gemini CLI 実通信テストを追加
+- 子プロセスの入出力検証用に `scripts/ipc-echo-*.js` を追加
+- Gemini CLI 起動/応答時間を測る `scripts/gemini-startup-probe.js` を追加
+- Gemini CLI `--version` の起動時間を測る `scripts/gemini-version-probe.js` を追加
+- MCP stdio サーバーとの疎通検証用に `scripts/mcp-stdio-probe.js` を追加
+- MCP 疎通テストで `gemini-mcp-tool` が Windows の `spawn` (shell false) により `gemini` / `echo` を解決できず ENOENT になる課題を確認
+
 ### Added (Previous)
 - **🎉 GitHub Push Success**: Successfully pushed 7 commits to GitHub
   - All core functionality and documentation now available on GitHub
