@@ -81,12 +81,18 @@ npm run dev
 gemini-cli-gui-wrapper/
 ├── src/
 │   ├── main/              # Electron メインプロセス
-│   │   ├── path-validator.js   # パス検証（セキュリティの要）
-│   │   └── file-api.js         # 安全なファイル操作API
+│   │   ├── index.js               # メインプロセスエントリー ⬅️ NEW!
+│   │   ├── gemini-cli-manager.js  # Gemini CLI 管理 ⬅️ NEW!
+│   │   ├── path-validator.js      # パス検証（セキュリティの要）
+│   │   └── file-api.js            # 安全なファイル操作API
+│   ├── preload/           # Preload スクリプト
+│   │   └── preload.js             # contextBridge API ⬅️ NEW!
 │   ├── renderer/          # Electron レンダラープロセス（UI）
-│   └── preload/           # Preload スクリプト
+│   │   ├── index.html             # メインUI ⬅️ NEW!
+│   │   ├── renderer.js            # UI ロジック ⬅️ NEW!
+│   │   └── style.css              # スタイルシート ⬅️ NEW!
 ├── tests/
-│   ├── unit/              # 単体テスト
+│   ├── unit/              # 単体テスト（85+ ケース）
 │   ├── e2e/               # E2Eテスト
 │   └── security/          # セキュリティテスト
 ├── instructions/          # 🌐 GenSpark → 💻 ローカルCLI
@@ -137,16 +143,28 @@ npm run test:security
 
 ## 📊 進捗状況
 
-### M0 技術検証: **40% 完了**
+### M0 技術検証: **80% 完了** 🎉
 
-- ✅ プロジェクトセットアップ
-- ✅ パス検証ロジック（260行、30+テスト）
-- ✅ ファイル操作API（235行、全操作網羅）
-- ✅ セキュリティテスト完備
-- ✅ CI/CD パイプライン構築
-- 🚧 Gemini CLI統合（次フェーズ）
-- 🚧 基本Electronアプリ
-- 🚧 E2Eテスト基盤
+#### ✅ 完了項目
+- [x] プロジェクトセットアップ
+- [x] パス検証ロジック（260行、30+ テスト）
+- [x] ファイル操作API（235行、20+ テスト）
+- [x] **GeminiCLIManager（266行、35テスト）** ⬅️ NEW!
+- [x] **基本 Electron アプリ（1,197行）** ⬅️ NEW!
+- [x] セキュリティテスト完備（85+ケース）
+- [x] CI/CD パイプライン構築
+- [x] AI-Human 協働ワークフロー構築
+- [x] **ワークスペース選択機能** ⬅️ NEW!
+- [x] **Gemini CLI 制御（起動/停止/メッセージ送信）** ⬅️ NEW!
+- [x] **リアルタイム出力表示** ⬅️ NEW!
+- [x] **ファイルツリー表示** ⬅️ NEW!
+
+#### 🚧 次のフェーズ（Phase 4: 20%）
+- [ ] E2E テスト基盤（Playwright）
+- [ ] 詳細な操作承認フロー（diff プレビュー）
+- [ ] 削除/zip 操作の実装
+- [ ] インストーラー作成
+- [ ] ドキュメント仕上げ
 
 ---
 
