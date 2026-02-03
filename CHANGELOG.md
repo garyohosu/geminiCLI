@@ -8,18 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Gemini CLI Manager Module**: `src/main/gemini-cli-manager.js`
-  - `GeminiCLIManager` クラスを実装
-  - 子プロセス（spawn）でGemini CLIを起動・管理
-  - 標準入出力のストリーミング通信
-  - プロセスの起動・停止・再起動機能
-  - 自動再起動機能（autoRestart オプション）
-  - イベントエミッター（started, stopped, stdout, stderr, error, close等）
-  - 出力バッファ管理
-- **Unit Tests**: `tests/unit/gemini-cli-manager.test.js`
-  - 35テストケースを追加
-  - コンストラクタ、状態管理、イベント、入出力のテスト
-  - Windows固有のテスト（バックスラッシュパス、日本語パス対応）
+- **🎉 Gemini CLI Manager Implementation Complete** (2026-02-03)
+  - `src/main/gemini-cli-manager.js`: 266行の実装完了
+  - `tests/unit/gemini-cli-manager.test.js`: 571行、35テストケース（全て成功）
+  - プロセス制御: start/stop/restart/forceStop
+  - 通信機能: send(message)、stdout/stderr/output イベント
+  - 自動再起動機能（autoRestart、maxRestarts）
+  - Windows対応（バックスラッシュパス、日本語パス）
+  - イベント駆動アーキテクチャ
+- **Progress Update**: M0 技術検証 60% 完了（+10%）
+- **Next Task**: 基本 Electron アプリケーション実装
+  - 指示書作成: `instructions/20260203-0350-implement-electron-app.md`
+  - Main プロセス、Preload、Renderer の実装
+  - IPC 通信の設定
+  - 最小限のチャットUI
 
 ### Added (Previous)
 - **🎉 GitHub Push Success**: Successfully pushed 7 commits to GitHub
