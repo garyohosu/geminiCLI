@@ -8,8 +8,13 @@
     "dev": "electron . --dev",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.js",
-    "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\""
+    "test:coverage": "jest --coverage",
+    "test:security": "jest tests/security",
+    "lint": "eslint src/**/*.js tests/**/*.js",
+    "lint:fix": "eslint src/**/*.js tests/**/*.js --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\" \"tests/**/*.{js,jsx,json,md}\"",
+    "build": "echo 'Build script will be configured in M1 phase'",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {}\""
   },
   "keywords": [
     "gemini",
@@ -24,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/gemini-cli-gui-wrapper.git"
+    "url": "https://github.com/garyohosu/geminiCLI.git"
   },
   "dependencies": {
     "electron": "^28.0.0"

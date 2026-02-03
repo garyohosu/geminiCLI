@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CI/CD Pipeline**: GitHub Actions workflow for automated testing
+  - `.github/workflows/ci.yml`: CI configuration with test, lint, and build jobs
+  - Multi-version Node.js testing (18.x, 20.x)
+  - Windows-specific testing on pull requests
+  - Code coverage upload to Codecov
+- **Development Tools Configuration**:
+  - `.eslintrc.js`: ESLint configuration for code quality
+  - `.prettierrc`: Prettier configuration for code formatting
+  - Enhanced npm scripts in `package.json`:
+    - `test:coverage`: Generate test coverage reports
+    - `test:security`: Run security-focused tests
+    - `lint:fix`: Auto-fix linting issues
+    - `prepare`: Husky setup for git hooks
+- **Documentation Updates**:
+  - Comprehensive `README.md` with project overview, quickstart, and workflow
+  - CI status badge and license badge
+  - Project structure and development guidelines
+  - Updated repository URL to `https://github.com/garyohosu/geminiCLI.git`
+
+### Added (Previous)
 - Initial project setup
 - Project specification documents
   - `spec.md`: Initial specification (draft)
