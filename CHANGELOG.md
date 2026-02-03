@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - ダークテーマの出力ログ
     - レスポンシブレイアウト
 - **Progress Update**: M0 技術検証 80% 完了（+20%）
+- instructions/20260203-1708-mcp-gemini-windows.md（MCP Windows 対応の作業指示）
 
 - **🎉 Gemini CLI Manager Implementation Complete** (2026-02-03)
   - `src/main/gemini-cli-manager.js`: 266行の実装完了
