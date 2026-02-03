@@ -39,17 +39,37 @@
 
 記録方法は [CHANGELOG.md](./CHANGELOG.md) のフォーマットに従ってください。
 
-## 💻 ローカルPCとのやり取り方法
+## 💻 GenSpark AIエージェント ↔ ローカルCLIツール 連携方法
 
-このプロジェクトは、AIエージェント（Claude Cowork等）とローカルPCの人間が協力して開発します。
+このプロジェクトは、**GenSpark AIエージェント**と**ローカルPCのCLIツール**（Claude Code、Codex CLI、Gemini CLI等）が協力して開発します。
 
-### 📥 指示の受け取り方
+### 🔄 ワークフロー全体像
 
-**ローカルPC → AIエージェント**
+```
+1. 🌐 GenSpark AIエージェントが instructions/ に指示書を作成
+        ↓
+2. 📤 GitHubにpush（instructions/ファイルをコミット）
+        ↓
+3. 📥 ローカルPCで git pull を実行
+        ↓
+4. 💻 ローカルCLIツール（Claude/Codex/Gemini）が instructions/ を読む
+        ↓
+5. 🔨 ローカルCLIツールがタスクを実行（実装・テスト・コミット）
+        ↓
+6. 📝 ローカルCLIツールが results/ に結果を出力
+        ↓
+7. 📤 GitHubにpush（results/ファイルをコミット）
+        ↓
+8. 🌐 GenSpark AIエージェントが git pull して results/ を確認
+        ↓
+9. ✅ 成功/失敗を判定 → 次のタスクへ
+```
 
-1. 人間が `instructions/` フォルダに指示書（Markdownファイル）を配置
-2. AIエージェントは起動時または定期的に `instructions/` フォルダをチェック
-3. 新しい指示ファイルを発見したら、内容を読んで実行
+### 📥 指示書の作成（GenSpark AIエージェント側）
+
+**GenSpark AIエージェント → ローカルCLIツール**
+
+GenSpark AIエージェントは `instructions/` フォルダに指示書（Markdownファイル）を作成し、GitHubにpushします。
 
 **指示ファイルの命名規則:**
 ```
@@ -57,32 +77,74 @@ instructions/YYYYMMDD-HHMM-<タスク名>.md
 例: instructions/20260203-1430-implement-gemini-cli.md
 ```
 
-**指示ファイルの構造例:**
+**指示ファイルの構造（必須項目）:**
 ```markdown
-# タスク: Gemini CLI統合の実装
+# タスク: [タスク名]
 
 ## 目的
-Gemini CLIを子プロセスとして起動し、stdin/stdoutで通信する機能を実装する。
+[このタスクで達成したいこと]
 
 ## 要件
-- [ ] GeminiCLIManager クラスを作成
-- [ ] spawn() でGemini CLIを起動
-- [ ] 標準出力をストリーミングで取得
+- [ ] 要件1
+- [ ] 要件2
+- [ ] 要件3
 
-## 期限
-2026年2月5日まで
+## 実装ファイル
+- src/main/xxx.js (新規作成)
+- tests/unit/xxx.test.js (新規作成)
+
+## 結果の出力先
+results/20260203-1430-implement-gemini-cli-result.md
 
 ## 参考資料
-- spec.md の「8. Gemini CLI 連携仕様」を参照
+- spec.md のセクションX
+- AGENTS.md の「開発フロー」
+
+## 期限
+YYYY年MM月DD日まで
+
+## 重要事項
+- 必ず results/ フォルダに結果を出力すること
+- 実装後は必ず git add, git commit, git push すること
+- CHANGELOG.md を更新すること
 ```
 
-### 📤 結果の報告方法
+**⚠️ 重要：GenSpark AIエージェントがやること**
+1. `instructions/` にMarkdownファイルを作成
+2. `git add instructions/`
+3. `git commit -m "task: Add instruction for XXX"`
+4. `git push`
+5. ローカルCLIツールの実行完了を待つ
+6. `git pull` して `results/` を確認
 
-**AIエージェント → ローカルPC**
+### 📤 結果の出力（ローカルCLIツール側）
 
-1. タスク完了後、`results/` フォルダに結果レポート（Markdownファイル）を出力
-2. ファイル名は対応する指示ファイルと関連付ける
-3. 実装内容、変更ファイル、テスト結果、次のステップを記載
+**ローカルCLIツール → GenSpark AIエージェント**
+
+ローカルCLIツール（Claude Code等）は、以下の手順で作業します：
+
+**手順:**
+```bash
+# 1. 最新の指示を取得
+git pull
+
+# 2. instructions/ フォルダの指示書を確認
+ls instructions/
+
+# 3. 指示書を読んで実装
+cat instructions/20260203-1430-implement-gemini-cli.md
+
+# 4. 実装・テスト・コミット
+# （ローカルCLIツールが自動で実行）
+
+# 5. 結果を results/ に出力
+# （指示書に書かれた出力先に結果ファイルを作成）
+
+# 6. 変更をpush
+git add .
+git commit -m "feat: Implement XXX"
+git push
+```
 
 **結果ファイルの命名規則:**
 ```
@@ -90,91 +152,87 @@ results/YYYYMMDD-HHMM-<タスク名>-result.md
 例: results/20260203-1430-implement-gemini-cli-result.md
 ```
 
-**結果ファイルの構造例:**
+**結果ファイルの構造（必須項目）:**
 ```markdown
-# タスク結果: Gemini CLI統合の実装
+# タスク結果: [タスク名]
 
 ## ステータス
 ✅ 完了 / ⚠️ 部分完了 / ❌ 未完了
 
 ## 実装内容
-- src/main/gemini-cli-manager.js を作成
-- spawn() による子プロセス起動を実装
-- stdout/stderr のイベントリスナーを実装
+- [実装した機能の説明]
 
 ## 変更ファイル
-- 新規: src/main/gemini-cli-manager.js (150行)
-- 新規: tests/unit/gemini-cli-manager.test.js (80行)
-- 更新: package.json (依存関係追加)
+- 新規: path/to/file.js (行数)
+- 更新: path/to/existing.js (変更内容)
+- 削除: path/to/old.js
 
 ## テスト結果
-✅ すべてのテストが合格 (25/25)
+✅ すべてのテストが合格 (XX/XX)
+または
+❌ テスト失敗 (XX/XX) - エラー内容
 
-## コミット
-- コミットハッシュ: abc1234
-- コミットメッセージ: "feat: Add Gemini CLI integration..."
+## コミット情報
+- コミットハッシュ: [hash]
+- コミットメッセージ: "[message]"
 
-## 次のステップ
-1. 出力パーサーの実装
-2. エラーハンドリングの強化
-3. タイムアウト処理の追加
+## 次のステップ（推奨）
+1. [次にやるべきこと]
+2. [次にやるべきこと]
 
 ## 問題点・課題
-- Gemini CLIの認証フローをどう扱うか検討が必要
+- [発生した問題や疑問点]
+- [GenSpark AIエージェントへの質問]
 
 ## 所要時間
-約45分
+約XX分
+
+## 備考
+[その他の情報]
 ```
 
 ### 📂 ディレクトリ構造
 
 ```
 gemini-cli-gui-wrapper/
-├── instructions/          # 人間 → AI への指示
+├── instructions/          # 🌐 GenSpark → 💻 ローカルCLI
 │   ├── 20260203-1430-implement-gemini-cli.md
 │   └── 20260205-0900-add-ui-components.md
-└── results/               # AI → 人間 への報告
+└── results/               # 💻 ローカルCLI → 🌐 GenSpark
     ├── 20260203-1430-implement-gemini-cli-result.md
     └── 20260205-0900-add-ui-components-result.md
 ```
 
-### 🔄 ワークフロー
-
-```
-1. 人間が instructions/YYYYMMDD-HHMM-task.md を作成
-        ↓
-2. AIエージェントが instructions/ をチェック
-        ↓
-3. 指示ファイルを読み込んで理解
-        ↓
-4. タスクを実行（実装・テスト・コミット）
-        ↓
-5. results/YYYYMMDD-HHMM-task-result.md を生成
-        ↓
-6. CHANGELOG.md を更新
-        ↓
-7. 人間が results/ を確認して次の指示を出す
-```
-
 ### ✅ ベストプラクティス
 
-**AIエージェント側:**
-- 指示ファイルを読んだら、その内容を削除せずそのまま残す
+**GenSpark AIエージェント側:**
+- 指示は具体的かつ明確に書く
+- 結果の出力先ファイル名を必ず指定
+- 「git push すること」を明記
+- 複雑なタスクは分割する
+- results/ を確認したら、指示書は削除してOK（またはアーカイブ）
+
+**ローカルCLIツール側:**
+- 必ず `git pull` してから作業開始
+- 指示書に書かれた出力先に結果ファイルを作成
 - 結果ファイルは必ず生成する（失敗した場合も）
 - コードを変更したら必ず CHANGELOG.md を更新
-- 不明点がある場合は、結果ファイルに質問を記載
-
-**人間側:**
-- 指示は具体的かつ明確に書く
-- 1つの指示ファイルには1つのタスクのみ
-- 複雑なタスクは複数の指示ファイルに分割
-- 結果ファイルを確認したら、次の指示を出す
+- 必ず `git push` して GenSpark に結果を伝える
 
 ### 🚨 注意事項
 
-- `instructions/` と `results/` フォルダは `.gitignore` に追加（個人的なやり取りなので）
-- 重要な情報は README.md や spec.md に反映する
-- 結果ファイルは定期的にアーカイブまたは削除して整理
+**⚠️ Git管理について:**
+- `instructions/` と `results/` は **Git管理に含める**（`.gitignore`に追加しない）
+- これにより、GenSparkとローカルCLIが連携可能
+
+**⚠️ ファイル管理:**
+- 完了したタスクの指示書・結果は定期的にアーカイブ
+- または削除して整理
+- 重要な情報は README.md や spec.md に反映
+
+**⚠️ セキュリティ:**
+- APIキーや機密情報は絶対に書かない
+- パスワードやトークンは環境変数で管理
 
 ## 🏗️ 技術スタック
 

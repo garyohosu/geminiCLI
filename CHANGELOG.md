@@ -37,12 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `tests/unit/file-api.test.js`: Full coverage of file operations
     - Attack pattern validation (path traversal, symlink escape, etc.)
   - `jest.config.js`: Jest test configuration
-- **Workflow System**: AI-Human collaboration workflow
-  - `instructions/` folder: Human → AI task instructions
-  - `results/` folder: AI → Human task results
+- **Workflow System**: GenSpark AI ↔ Local CLI collaboration workflow
+  - `instructions/` folder: GenSpark AI → Local CLI task instructions
+  - `results/` folder: Local CLI → GenSpark AI task results
   - README files in both folders with templates and guidelines
-  - Added to `.gitignore` for private communication
+  - **Git-tracked** (not in .gitignore) for cross-environment communication
   - Documented in AGENTS.md with detailed workflow explanation
+  - GenSpark creates instructions, Local CLI executes and reports results
 
 ### Context
 - Project goal: Create a GUI wrapper for Gemini CLI targeting non-programmers

@@ -14,7 +14,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-*.swo
+.swo
 *~
 
 # Env
@@ -48,6 +48,5 @@ yarn-error.log*
 .gemini-gui-logs/
 .gemini-gui-backups/
 
-# Local workflow (AI ↔ Human communication)
-instructions/
-results/
+# Note: instructions/ and results/ are tracked in Git
+# for GenSpark AI ↔ Local CLI communication
