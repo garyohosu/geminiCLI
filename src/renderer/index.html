@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Gemini CLI GUI Wrapper</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ヘッダー -->
+    <header id="header">
+      <h1>Gemini CLI GUI Wrapper</h1>
+      <div id="status-indicator">
+        <span id="status-dot"></span>
+        <span id="status-text">停止中</span>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main id="main">
+      <!-- サイドバー（ワークスペース情報） -->
+      <aside id="sidebar">
+        <section id="workspace-section">
+          <h2>ワークスペース</h2>
+          <button id="select-workspace-btn" class="btn btn-primary">
+            フォルダを選択
+          </button>
+          <div id="workspace-path" class="path-display">
+            未選択
+          </div>
+        </section>
+
+        <section id="control-section">
+          <h2>Gemini CLI 制御</h2>
+          <div class="button-group">
+            <button id="start-btn" class="btn btn-success" disabled>
+              起動
+            </button>
+            <button id="stop-btn" class="btn btn-danger" disabled>
+              停止
+            </button>
+          </div>
+        </section>
+
+        <section id="file-section">
+          <h2>ファイル一覧</h2>
+          <div id="file-tree" class="file-tree">
+            <p class="placeholder">ワークスペースを選択してください</p>
+          </div>
+        </section>
+      </aside>
+
+      <!-- チャットエリア -->
+      <div id="chat-area">
+        <!-- 出力表示 -->
+        <section id="output-section">
+          <div id="output-header">
+            <h2>出力</h2>
+            <button id="clear-output-btn" class="btn btn-small">クリア</button>
+          </div>
+          <div id="output-log">
+            <div class="welcome-message">
+              <p>Gemini CLI GUI Wrapper へようこそ！</p>
+              <p>1. まず「フォルダを選択」からワークスペースを選択してください</p>
+              <p>2. 「起動」ボタンで Gemini CLI を起動します</p>
+              <p>3. 下のテキストエリアからメッセージを送信できます</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- チャット入力 -->
+        <section id="chat-input-section">
+          <div id="chat-input-wrapper">
+            <textarea
+              id="message-input"
+              placeholder="メッセージを入力... (Ctrl+Enter で送信)"
+              rows="3"
+              disabled
+            ></textarea>
+            <button id="send-btn" class="btn btn-primary" disabled>
+              送信
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- フッター -->
+    <footer id="footer">
+      <span>Gemini CLI GUI Wrapper v0.1.0</span>
+      <span id="platform"></span>
+    </footer>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

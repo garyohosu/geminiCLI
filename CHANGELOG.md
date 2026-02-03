@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **🎉 Basic Electron Application Implementation** (2026-02-03)
+  - `src/main/index.js`: Electron メインプロセス（~280行）
+    - ウィンドウ管理
+    - IPC ハンドラー（workspace, gemini, file 操作）
+    - GeminiCLIManager 統合
+    - セキュリティ設定（contextIsolation, sandbox）
+  - `src/preload/preload.js`: Preload スクリプト（~100行）
+    - contextBridge による安全な API 公開
+    - イベントリスナー登録/解除機能
+  - `src/renderer/index.html`: UI HTML（~100行）
+    - ワークスペース選択
+    - Gemini CLI 制御パネル
+    - チャット入出力エリア
+    - ファイルツリー表示
+  - `src/renderer/renderer.js`: UI JavaScript（~250行）
+    - イベントハンドリング
+    - 状態管理
+    - 出力表示（タイムスタンプ付き）
+  - `src/renderer/style.css`: スタイル（~280行）
+    - モダンな UI デザイン
+    - ダークテーマの出力ログ
+    - レスポンシブレイアウト
+- **Progress Update**: M0 技術検証 80% 完了（+20%）
+
 - **🎉 Gemini CLI Manager Implementation Complete** (2026-02-03)
   - `src/main/gemini-cli-manager.js`: 266行の実装完了
   - `tests/unit/gemini-cli-manager.test.js`: 571行、35テストケース（全て成功）

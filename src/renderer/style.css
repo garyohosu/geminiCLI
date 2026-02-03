@@ -1,0 +1,369 @@
+/**
+ * Gemini CLI GUI Wrapper - スタイル
+ */
+
+/* リセットとベース */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+/* アプリケーションコンテナ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ヘッダー */
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #2c3e50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#header h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+#status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+#status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #95a5a6;
+}
+
+#status-dot.status-stopped { background: #95a5a6; }
+#status-dot.status-starting { background: #f39c12; animation: pulse 1s infinite; }
+#status-dot.status-running { background: #27ae60; }
+#status-dot.status-stopping { background: #f39c12; animation: pulse 1s infinite; }
+#status-dot.status-error { background: #e74c3c; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* メインコンテンツ */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* サイドバー */
+#sidebar {
+  width: 280px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#sidebar section {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#sidebar h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.path-display {
+  font-size: 12px;
+  color: #666;
+  word-break: break-all;
+  margin-top: 10px;
+  padding: 8px;
+  background: #f8f8f8;
+  border-radius: 4px;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* ファイルツリー */
+#file-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-tree {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.file-tree ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.file-tree li {
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-tree li:hover {
+  background: #f0f0f0;
+}
+
+.file-tree .icon {
+  font-size: 14px;
+}
+
+.file-tree .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-tree .placeholder {
+  color: #999;
+  font-style: italic;
+  padding: 10px;
+}
+
+/* チャットエリア */
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 出力セクション */
+#output-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  overflow: hidden;
+}
+
+#output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#output-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#output-log {
+  flex: 1;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 15px;
+  border-radius: 6px;
+  overflow-y: auto;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.output-line {
+  padding: 2px 0;
+  word-break: break-word;
+}
+
+.output-line .timestamp {
+  color: #6a9955;
+  font-size: 11px;
+}
+
+.output-stdout .text { color: #9cdcfe; }
+.output-stderr .text { color: #f48771; }
+.output-error .text { color: #f48771; font-weight: bold; }
+.output-info .text { color: #dcdcaa; font-style: italic; }
+.output-user .text { color: #ce9178; }
+
+.welcome-message {
+  color: #808080;
+  font-style: italic;
+}
+
+.welcome-message p {
+  margin: 8px 0;
+}
+
+/* チャット入力 */
+#chat-input-section {
+  padding: 15px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+}
+
+#chat-input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+#message-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+#message-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+#message-input:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+/* フッター */
+#footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 20px;
+  background: #ecf0f1;
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+/* ボタン */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.btn-success {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #229954;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-small:hover:not(:disabled) {
+  background: #7f8c8d;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+#output-log::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+#output-log::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+#output-log::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* エラー表示 */
+.error {
+  color: #e74c3c;
+}
