@@ -44,6 +44,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Git-tracked** (not in .gitignore) for cross-environment communication
   - Documented in AGENTS.md with detailed workflow explanation
   - GenSpark creates instructions, Local CLI executes and reports results
+- **Development Environment Information**:
+  - GenSpark AI: Linux sandbox (cannot test Windows-specific features)
+  - Local PC: Windows 11 64bit (can perform real device testing)
+  - Added Windows environment testing guidelines to AGENTS.md
+  - Documented Windows-specific test cases and manual testing requirements
 
 ### Context
 - Project goal: Create a GUI wrapper for Gemini CLI targeting non-programmers

@@ -11,6 +11,19 @@
 - **類似製品**: Claude Cowork（プログラマー向け）
 - **ターゲット**: 非プログラマー（事務職、教師、フリーランス等）
 - **差別化**: 完全無料、安全設計、初心者向けUI
+- **開発環境**: GenSpark AI (Linux sandbox) ↔ ローカルPC (Windows 11)
+
+### 開発環境の特徴
+
+**GenSpark AIエージェント側 (このAI):**
+- **OS**: Linux (sandbox環境)
+- **制約**: Windows固有の機能は直接テストできない
+- **役割**: アーキテクチャ設計、コア機能実装、クロスプラットフォーム対応コード
+
+**ローカルPC側:**
+- **OS**: Windows 11 (64bit)
+- **優位性**: Windows環境での実機テスト可能
+- **役割**: Windows固有の動作確認、UI/UX検証、統合テスト
 
 ## 📋 必読ドキュメント
 
@@ -218,6 +231,72 @@ gemini-cli-gui-wrapper/
 - 結果ファイルは必ず生成する（失敗した場合も）
 - コードを変更したら必ず CHANGELOG.md を更新
 - 必ず `git push` して GenSpark に結果を伝える
+- **Windows 11環境での動作確認を実施**（重要！）
+
+### 🪟 Windows環境での動作確認（ローカルPC側の重要な役割）
+
+**GenSpark AIエージェントの制約:**
+- Linux sandbox環境で動作
+- Windows固有の機能は直接テストできない
+- パス区切り文字（`\` vs `/`）の違い
+- Electron/Node.jsのWindows特有の挙動
+
+**ローカルPC（Windows 11）での確認事項:**
+
+1. **パス処理の検証**
+   ```javascript
+   // Windows固有のパス形式
+   C:\Users\username\Documents
+   \\network\share
+   ```
+   - バックスラッシュの扱い
+   - ドライブレターの扱い
+   - UNCパスの扱い
+
+2. **Electronアプリの動作確認**
+   - `npm start` または `npm run dev` で起動
+   - GUIの表示確認
+   - ファイルダイアログの動作
+   - ネイティブメニューの表示
+
+3. **Gemini CLIの統合テスト**
+   - Windows環境でのGemini CLI起動
+   - 子プロセス管理（spawn）の動作
+   - 標準入出力の通信
+
+4. **ファイル操作の実機テスト**
+   - 日本語ファイル名の扱い
+   - パス長制限（MAX_PATH）
+   - ファイルロック（他アプリ使用中）
+   - シンボリックリンク/ジャンクション
+
+5. **インストーラーテスト**
+   - `.exe`インストーラーの動作
+   - スタートメニューへの登録
+   - アンインストールの動作
+
+**結果レポートに含めるべき情報:**
+```markdown
+## Windows 11 動作確認
+
+### テスト環境
+- OS: Windows 11 Pro 64bit
+- Node.js: v18.x.x
+- Electron: v28.x.x
+
+### 動作確認結果
+✅ アプリ起動: 正常
+✅ ファイルダイアログ: 正常
+✅ 日本語ファイル名: 正常
+⚠️ 長いパス: 要対応（MAX_PATH制限）
+❌ Gemini CLI統合: エラー発生
+
+### Windows固有の問題
+- [発見した問題点]
+
+### スクリーンショット
+- [必要に応じてスクリーンショットを添付]
+```
 
 ### 🚨 注意事項
 
@@ -512,6 +591,70 @@ test('basic file operation flow', async ({ page }) => {
   await page.waitForSelector('[data-testid="success-message"]');
 });
 ```
+
+### Windows環境テスト（ローカルPC側で実施）
+
+**重要: GenSpark AIはLinux環境のため、Windows固有のテストはローカルPCで実施してください**
+
+#### Windows固有のテストケース
+
+```javascript
+// tests/windows/path-handling.test.js
+describe('Windows Path Handling', () => {
+  it('should handle backslash separators', () => {
+    // Windows: C:\Users\username\Documents
+    const winPath = 'C:\\Users\\username\\Documents';
+    // 正しく処理されるか確認
+  });
+
+  it('should handle drive letters', () => {
+    // C:, D:, E: etc.
+  });
+
+  it('should handle UNC paths', () => {
+    // \\server\share\folder
+  });
+
+  it('should handle long paths (MAX_PATH)', () => {
+    // 260文字以上のパス
+  });
+
+  it('should handle Japanese characters in paths', () => {
+    // 日本語フォルダ名・ファイル名
+  });
+});
+
+// tests/windows/electron-integration.test.js
+describe('Electron on Windows', () => {
+  it('should launch Electron app', () => {
+    // npm start で起動確認
+  });
+
+  it('should show native file dialog', () => {
+    // Windows のファイル選択ダイアログ
+  });
+
+  it('should create tray icon', () => {
+    // システムトレイアイコン
+  });
+});
+```
+
+#### 手動テスト項目（ローカルPC側）
+
+**必須確認項目:**
+- [ ] アプリが起動する（`npm start`）
+- [ ] ファイル選択ダイアログが表示される
+- [ ] 日本語ファイル名が正しく表示される
+- [ ] バックスラッシュのパスが正しく処理される
+- [ ] 長いパス（260文字以上）が扱える
+- [ ] ネットワークドライブ（UNCパス）が扱える
+- [ ] インストーラー（.exe）が動作する
+- [ ] アンインストールが正常に動作する
+
+**結果の報告:**
+- results/ フォルダの結果ファイルに「Windows 11 動作確認」セクションを追加
+- 問題があれば詳細に記載（スクリーンショット推奨）
 
 ## 🐛 デバッグ方法
 
