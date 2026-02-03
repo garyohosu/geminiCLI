@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Gemini CLI Manager Module**: `src/main/gemini-cli-manager.js`
+  - `GeminiCLIManager` クラスを実装
+  - 子プロセス（spawn）でGemini CLIを起動・管理
+  - 標準入出力のストリーミング通信
+  - プロセスの起動・停止・再起動機能
+  - 自動再起動機能（autoRestart オプション）
+  - イベントエミッター（started, stopped, stdout, stderr, error, close等）
+  - 出力バッファ管理
+- **Unit Tests**: `tests/unit/gemini-cli-manager.test.js`
+  - 35テストケースを追加
+  - コンストラクタ、状態管理、イベント、入出力のテスト
+  - Windows固有のテスト（バックスラッシュパス、日本語パス対応）
+
+### Added (Previous)
 - **🎉 GitHub Push Success**: Successfully pushed 7 commits to GitHub
   - All core functionality and documentation now available on GitHub
   - Repository URL: https://github.com/garyohosu/geminiCLI

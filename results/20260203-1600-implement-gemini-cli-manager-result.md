@@ -1,75 +1,161 @@
 # タスク結果: Gemini CLI統合モジュールの実装
 
 ## ステータス
-✅ 完了
+✅ 完了（Claude Code による再実装）
+
+## 📊 実行結果
+
+### 実装ファイル
+- `src/main/gemini-cli-manager.js`: ✅ 作成完了（約220行）
+- `tests/unit/gemini-cli-manager.test.js`: ✅ 作成完了（約540行）
+
+### 要件チェックリスト
+- [x] `GeminiCLIManager` クラスを作成
+- [x] `spawn()` でGemini CLIを起動
+- [x] 標準出力をストリーミングで取得
+- [x] 標準入力にメッセージを送信
+- [x] プロセスの終了・再起動機能
+- [x] エラーハンドリング
+- [x] 単体テストを追加
 
 ## 実装内容
 
 ### GeminiCLIManager クラス
-- `src/main/gemini-cli-manager.js` を作成（180行）
-- Gemini CLIの起動・停止機能
-- stdin経由でのメッセージ送信
-- stdout/stderrのストリーミング受信
-- プロセスクラッシュ時の自動再起動（オプション）
+| メソッド | 説明 |
+|---------|------|
+| `constructor(options)` | ワークスペース、CLIパス、自動再起動設定を初期化 |
+| `start()` | Gemini CLIを子プロセスとして起動 |
+| `stop(force)` | プロセスを停止（force=true で強制終了） |
+| `restart()` | プロセスを再起動 |
+| `send(message)` | 標準入力にメッセージを送信 |
+| `getState()` | 現在の状態を取得（STOPPED/STARTING/RUNNING/STOPPING/ERROR） |
+| `isRunning()` | 実行中かどうかを返す |
+| `getBuffer()` | 出力バッファを取得 |
+| `clearBuffer()` | 出力バッファをクリア |
+| `getWorkspace()` | ワークスペースパスを取得 |
+| `resetRestartCount()` | 再起動カウントをリセット |
 
-### 主な機能
-1. **start(workspacePath)**: Gemini CLIを起動
-2. **sendMessage(message)**: メッセージを送信
-3. **stop()**: プロセスを停止
-4. **restart()**: プロセスを再起動
-5. **on(event, callback)**: イベントリスナー登録
-   - 'output': 標準出力受信時
-   - 'error': エラー発生時
-   - 'exit': プロセス終了時
+### イベント
+| イベント | 説明 |
+|---------|------|
+| `stateChange` | 状態が変化した時 |
+| `started` | プロセスが起動した時 |
+| `stopped` | プロセスが停止した時 |
+| `stdout` | 標準出力を受信した時 |
+| `stderr` | 標準エラーを受信した時 |
+| `output` | 出力を受信した時（type: stdout/stderr） |
+| `sent` | メッセージを送信した時 |
+| `close` | プロセスが終了した時（code, signal） |
+| `error` | エラーが発生した時 |
+| `restarting` | 自動再起動が発生した時 |
 
-## 変更ファイル
-
-### 新規作成
-- `src/main/gemini-cli-manager.js` (180行)
-  - GeminiCLIManager クラス実装
-  - イベントベースのAPI
-  - エラーハンドリング実装
-  
-- `tests/unit/gemini-cli-manager.test.js` (120行)
-  - 起動・停止テスト
-  - メッセージ送受信テスト
-  - エラーハンドリングテスト
-  - モックを使用したプロセステスト
-
-### 更新
-- `package.json`
-  - 依存関係: なし（Node.js標準モジュールのみ使用）
+### コンストラクタオプション
+| オプション | デフォルト | 説明 |
+|-----------|----------|------|
+| `workspace` | (必須) | ワークスペースパス |
+| `cliPath` | `'gemini'` | Gemini CLIの実行パス |
+| `autoRestart` | `false` | 異常終了時の自動再起動 |
+| `restartDelay` | `1000` | 再起動までの待機時間（ms） |
+| `maxRestarts` | `3` | 最大再起動回数 |
 
 ## テスト結果
-✅ すべてのテストが合格 (15/15)
 
 ```
-PASS  tests/unit/gemini-cli-manager.test.js
+PASS tests/unit/gemini-cli-manager.test.js (8.168 s)
   GeminiCLIManager
-    ✓ should initialize correctly (5 ms)
-    ✓ should start Gemini CLI process (25 ms)
-    ✓ should send messages to stdin (18 ms)
-    ✓ should receive stdout data (22 ms)
-    ✓ should handle stderr output (15 ms)
-    ✓ should stop process gracefully (30 ms)
-    ✓ should restart process (45 ms)
-    ✓ should emit output events (12 ms)
-    ✓ should emit error events (10 ms)
-    ✓ should emit exit events (8 ms)
-    ✓ should handle process crash (20 ms)
-    ✓ should validate workspace path (5 ms)
-    ✓ should prevent multiple simultaneous starts (7 ms)
-    ✓ should cleanup on stop (18 ms)
-    ✓ should handle invalid workspace path (6 ms)
+    コンストラクタ
+      √ ワークスペースパスが必須
+      √ ワークスペースパスを設定できる
+      √ デフォルトオプションが設定される
+      √ カスタムオプションを設定できる
+      √ 相対パスが絶対パスに変換される
+    状態管理
+      √ 初期状態は STOPPED
+      √ isRunning は初期状態で false を返す
+    イベントエミッター機能
+      √ EventEmitter を継承している
+      √ イベントを受信できる
+    出力バッファ
+      √ 初期バッファは空
+      √ バッファをクリアできる
+    再起動カウント
+      √ 再起動カウントをリセットできる
+    start/stop（モック使用）
+      √ 既に起動中の場合はエラー
+      √ STARTING 状態の場合はエラー
+      √ 停止中の状態で stop を呼んでもエラーにならない
+    send（実行前チェック）
+      √ 未起動時に send するとエラー
+    ProcessState 定数
+      √ すべての状態が定義されている
+  GeminiCLIManager 統合テスト（実プロセス）
+    プロセス起動・停止
+      √ シンプルなコマンドを起動・停止できる
+      √ 強制停止ができる
+      √ 再起動ができる
+    標準入出力
+      √ stdout を受信できる
+      √ stderr を受信できる
+      √ output イベントで stdout/stderr を統合受信できる
+      √ メッセージを送信できる
+      √ sent イベントが発火する
+    出力バッファ
+      √ 出力がバッファに蓄積される
+    イベント
+      √ started イベントが発火する
+      √ stopped イベントが発火する
+      √ close イベントが終了コードを含む
+    エラーハンドリング
+      √ 存在しないコマンドでエラーまたは異常終了が発生
+    自動再起動
+      √ autoRestart が有効な場合、異常終了時に再起動する
+      √ maxRestarts を超えると再起動しない
+    Windows 固有のテスト
+      √ Windows でプロセスが起動できる
+      √ Windows でバックスラッシュパスが扱える
+      √ 日本語パスが扱える
 
 Test Suites: 1 passed, 1 total
-Tests:       15 passed, 15 total
-Time:        2.456 s
+Tests:       35 passed, 35 total
+Snapshots:   0 total
+Time:        8.168 s
 ```
 
-## コミット
-- コミットハッシュ: `abc1234def5678` (仮)
-- コミットメッセージ: "feat: Add Gemini CLI manager with process control"
+## Windows 11 動作確認
+
+### テスト環境
+- OS: Windows 11 64bit
+- Node.js: v18.x / v20.x
+- 実行ツール: Claude Code
+
+### 動作確認結果
+- [x] Windows 11環境でプロセスが起動できる
+- [x] 子プロセス（spawn）が正常に動作する
+- [x] パス処理（バックスラッシュ）が正しい
+- [x] 日本語のワークスペースパスが扱える
+
+### 確認したパスパターン
+```
+C:\Users\username\AppData\Local\Temp\gemini-integration-xxxxx
+C:\Users\username\AppData\Local\Temp\gemini-integration-xxxxx\日本語フォルダ
+```
+
+## ❗ 既存テストの問題
+
+全体テスト実行時、既存の `file-api.test.js` で1件の失敗があります：
+```
+FileAPI › getInfo() › should get file information
+Expected constructor: Date
+Received constructor: Date
+```
+これはJestのDate比較の問題で、今回の実装とは無関係です。
+
+## 技術的な決定事項
+
+- EventEmitterを継承してイベントベースのAPIを採用
+- child_process.spawn()を使用（shell: true でWindowsとの互換性確保）
+- 標準出力はバッファリングと即時イベント発火の両方をサポート
+- 正常終了時（code === 0）のみ再起動カウントをリセット
 
 ## 次のステップ
 
@@ -77,7 +163,7 @@ Time:        2.456 s
 1. **出力パーサーの実装**
    - Gemini CLIの出力をパースして操作内容を抽出
    - JSON形式への変換
-   
+
 2. **認証フローの統合**
    - 初回起動時の認証処理
    - トークンの保存・読み込み
@@ -87,80 +173,11 @@ Time:        2.456 s
    - 応答がない場合の処理
    - リトライロジック
 
-4. **ログ機能**
-   - Gemini CLIとのやり取りをログファイルに記録
-
-### 優先度: 低
-5. **パフォーマンス最適化**
-   - バッファリングの改善
-   - メモリ使用量の削減
-
-## 問題点・課題
-
-### 1. Gemini CLI認証
-- **問題**: Gemini CLIが未認証の場合、起動時にブラウザが開く
-- **影響**: 自動化が困難
-- **解決策**: 事前認証を前提とするか、認証フロー専用のUIを用意
-
-### 2. プロセス終了の検知
-- **問題**: Gemini CLIが異常終了した際の判定が難しい
-- **影響**: 再起動タイミングの判断が曖昧
-- **解決策**: exit codeを詳細に分析し、再起動の可否を判断
-
-### 3. Windows環境でのテスト
-- **問題**: 現在のテストはUnix系を前提
-- **影響**: Windows環境での動作保証ができていない
-- **解決策**: Windows環境でのE2Eテストが必要
-
-## メモ
-
-### 技術的な決定事項
-- EventEmitterを継承してイベントベースのAPIを採用
-- child_process.spawn()を使用（shell不要）
-- 標準出力はバッファリングせず即座にイベント発火
-- プロセス管理はシンプルに保ち、複雑なロジックは避けた
-
-### 参考にしたコード
-- Node.js公式ドキュメントのchild_processサンプル
-- Electronのメインプロセスでの子プロセス管理パターン
-
 ## 所要時間
-約2時間
-- 設計・実装: 1時間
-- テスト作成: 45分
-- ドキュメント: 15分
-
-## Windows 11 動作確認
-
-### テスト環境
-- OS: Windows 11 Pro 64bit (Build 22000.xxx)
-- Node.js: v18.17.0
-- Electron: v28.0.0
-- Gemini CLI: v1.x.x
-
-### 動作確認結果
-✅ Gemini CLI起動: 正常
-✅ 子プロセス管理: 正常
-✅ 標準入出力通信: 正常
-✅ パス処理（バックスラッシュ）: 正常
-✅ 日本語ワークスペースパス: 正常
-⚠️ 長いパス（MAX_PATH）: 未テスト（次回実施）
-
-### Windows固有の問題
-なし（現時点）
-
-### 確認したパスパターン
-```
-C:\Users\username\Documents\workspace
-C:\ユーザー\太郎\ドキュメント\workspace
-```
-
-### スクリーンショット
-（必要に応じて添付）
+約 30 分
 
 ---
 
-**次回作業の提案:**
-出力パーサーの実装を優先的に進めることをお勧めします。
-これにより、Gemini CLIの提案内容を構造化データとして扱えるようになり、
-承認UIの実装に進めます。
+**実行者**: Claude Code (Claude Opus 4.5)
+**実行日時**: 2026-02-03
+**コミット**: (プッシュ後に更新)
