@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **🎉 Phase 4: 仕上げと配布準備** (2026-02-03)
+  - **E2E テスト基盤**
+    - `playwright.config.js`: Playwright 設定
+    - `tests/e2e/app.e2e.test.js`: 17+ E2E テストケース
+    - アプリ起動、UI 要素、初期状態のテスト
+  - **操作承認フロー（Diff プレビュー）**
+    - `src/renderer/diff-viewer.js`: Diff Viewer コンポーネント
+    - `src/main/index.js`: diff プレビュー IPC ハンドラー追加
+    - モーダルダイアログでの変更プレビュー
+    - 承認/キャンセル機能
+  - **インストーラー準備**
+    - `package.json`: electron-builder 設定追加
+    - NSIS インストーラー設定
+    - ポータブル版設定
+    - `build/README.md`: アイコン作成ガイド
+  - **npm scripts 追加**
+    - `test:e2e`: Playwright E2E テスト
+    - `build`: Windows インストーラー生成
+    - `build:portable`: ポータブル版生成
+- **Progress Update**: M0 技術検証 100% 完了
+
 - **🎉 Basic Electron Application Implementation** (2026-02-03)
   - `src/main/index.js`: Electron メインプロセス（~280行）
     - ウィンドウ管理

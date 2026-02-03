@@ -212,6 +212,76 @@ function setupIPCHandlers() {
       return { success: false, error: err.message };
     }
   });
+
+  // ファイル書き込み前の diff 生成
+  ipcMain.handle('file:preview-write', async (event, filePath, newContent) => {
+    try {
+      if (!fileAPI) {
+        return { success: false, error: 'Workspace not selected' };
+      }
+
+      let currentContent = '';
+      try {
+        currentContent = await fileAPI.readText(filePath);
+      } catch (e) {
+        // ファイルが存在しない場合は空文字として扱う
+        currentContent = '';
+      }
+
+      const diff = generateDiff(currentContent, newContent);
+      return { success: true, diff, isNewFile: currentContent === '' };
+    } catch (err) {
+      console.error('File preview failed:', err);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // ファイル書き込み（承認後）
+  ipcMain.handle('file:write', async (event, filePath, content) => {
+    try {
+      if (!fileAPI) {
+        return { success: false, error: 'Workspace not selected' };
+      }
+      await fileAPI.writeText(filePath, content);
+      return { success: true };
+    } catch (err) {
+      console.error('File write failed:', err);
+      return { success: false, error: err.message };
+    }
+  });
+}
+
+/**
+ * 簡易的な diff を生成
+ */
+function generateDiff(oldContent, newContent) {
+  const oldLines = oldContent.split('\n');
+  const newLines = newContent.split('\n');
+  const changes = [];
+
+  const maxLen = Math.max(oldLines.length, newLines.length);
+
+  for (let i = 0; i < maxLen; i++) {
+    const oldLine = i < oldLines.length ? oldLines[i] : null;
+    const newLine = i < newLines.length ? newLines[i] : null;
+
+    if (oldLine === null) {
+      // 新規追加行
+      changes.push({ type: 'add', line: newLine });
+    } else if (newLine === null) {
+      // 削除行
+      changes.push({ type: 'remove', line: oldLine });
+    } else if (oldLine !== newLine) {
+      // 変更行
+      changes.push({ type: 'remove', line: oldLine });
+      changes.push({ type: 'add', line: newLine });
+    } else {
+      // 変更なし
+      changes.push({ type: 'context', line: oldLine });
+    }
+  }
+
+  return { changes };
 }
 
 /**

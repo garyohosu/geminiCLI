@@ -85,7 +85,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     list: (dirPath) => ipcRenderer.invoke('file:list', dirPath),
     read: (filePath) => ipcRenderer.invoke('file:read', filePath),
     info: (filePath) => ipcRenderer.invoke('file:info', filePath),
-    search: (pattern, dirPath) => ipcRenderer.invoke('file:search', pattern, dirPath)
+    search: (pattern, dirPath) => ipcRenderer.invoke('file:search', pattern, dirPath),
+    previewWrite: (filePath, content) => ipcRenderer.invoke('file:preview-write', filePath, content),
+    write: (filePath, content) => ipcRenderer.invoke('file:write', filePath, content)
   },
 
   // アプリケーション情報

@@ -10,11 +10,53 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:security": "jest tests/security",
+    "test:e2e": "playwright test",
+    "test:e2e:debug": "playwright test --debug",
     "lint": "eslint src/**/*.js tests/**/*.js",
     "lint:fix": "eslint src/**/*.js tests/**/*.js --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css,md}\" \"tests/**/*.{js,jsx,json,md}\"",
-    "build": "echo 'Build script will be configured in M1 phase'",
+    "build": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "build:dir": "electron-builder --win --dir",
     "prepare": "node -e \"try { require('husky').install() } catch (e) {}\""
+  },
+  "build": {
+    "appId": "com.gemini.cli.gui",
+    "productName": "Gemini CLI GUI Wrapper",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gemini CLI GUI"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/",
+        "to": "build/",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   },
   "keywords": [
     "gemini",
@@ -35,10 +77,12 @@
     "electron": "^28.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.1",
+    "electron-builder": "^26.7.0",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
-    "prettier": "^3.1.1",
-    "@playwright/test": "^1.40.1"
+    "playwright": "^1.58.1",
+    "prettier": "^3.1.1"
   },
   "engines": {
     "node": ">=18.0.0",
