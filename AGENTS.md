@@ -39,6 +39,143 @@
 
 記録方法は [CHANGELOG.md](./CHANGELOG.md) のフォーマットに従ってください。
 
+## 💻 ローカルPCとのやり取り方法
+
+このプロジェクトは、AIエージェント（Claude Cowork等）とローカルPCの人間が協力して開発します。
+
+### 📥 指示の受け取り方
+
+**ローカルPC → AIエージェント**
+
+1. 人間が `instructions/` フォルダに指示書（Markdownファイル）を配置
+2. AIエージェントは起動時または定期的に `instructions/` フォルダをチェック
+3. 新しい指示ファイルを発見したら、内容を読んで実行
+
+**指示ファイルの命名規則:**
+```
+instructions/YYYYMMDD-HHMM-<タスク名>.md
+例: instructions/20260203-1430-implement-gemini-cli.md
+```
+
+**指示ファイルの構造例:**
+```markdown
+# タスク: Gemini CLI統合の実装
+
+## 目的
+Gemini CLIを子プロセスとして起動し、stdin/stdoutで通信する機能を実装する。
+
+## 要件
+- [ ] GeminiCLIManager クラスを作成
+- [ ] spawn() でGemini CLIを起動
+- [ ] 標準出力をストリーミングで取得
+
+## 期限
+2026年2月5日まで
+
+## 参考資料
+- spec.md の「8. Gemini CLI 連携仕様」を参照
+```
+
+### 📤 結果の報告方法
+
+**AIエージェント → ローカルPC**
+
+1. タスク完了後、`results/` フォルダに結果レポート（Markdownファイル）を出力
+2. ファイル名は対応する指示ファイルと関連付ける
+3. 実装内容、変更ファイル、テスト結果、次のステップを記載
+
+**結果ファイルの命名規則:**
+```
+results/YYYYMMDD-HHMM-<タスク名>-result.md
+例: results/20260203-1430-implement-gemini-cli-result.md
+```
+
+**結果ファイルの構造例:**
+```markdown
+# タスク結果: Gemini CLI統合の実装
+
+## ステータス
+✅ 完了 / ⚠️ 部分完了 / ❌ 未完了
+
+## 実装内容
+- src/main/gemini-cli-manager.js を作成
+- spawn() による子プロセス起動を実装
+- stdout/stderr のイベントリスナーを実装
+
+## 変更ファイル
+- 新規: src/main/gemini-cli-manager.js (150行)
+- 新規: tests/unit/gemini-cli-manager.test.js (80行)
+- 更新: package.json (依存関係追加)
+
+## テスト結果
+✅ すべてのテストが合格 (25/25)
+
+## コミット
+- コミットハッシュ: abc1234
+- コミットメッセージ: "feat: Add Gemini CLI integration..."
+
+## 次のステップ
+1. 出力パーサーの実装
+2. エラーハンドリングの強化
+3. タイムアウト処理の追加
+
+## 問題点・課題
+- Gemini CLIの認証フローをどう扱うか検討が必要
+
+## 所要時間
+約45分
+```
+
+### 📂 ディレクトリ構造
+
+```
+gemini-cli-gui-wrapper/
+├── instructions/          # 人間 → AI への指示
+│   ├── 20260203-1430-implement-gemini-cli.md
+│   └── 20260205-0900-add-ui-components.md
+└── results/               # AI → 人間 への報告
+    ├── 20260203-1430-implement-gemini-cli-result.md
+    └── 20260205-0900-add-ui-components-result.md
+```
+
+### 🔄 ワークフロー
+
+```
+1. 人間が instructions/YYYYMMDD-HHMM-task.md を作成
+        ↓
+2. AIエージェントが instructions/ をチェック
+        ↓
+3. 指示ファイルを読み込んで理解
+        ↓
+4. タスクを実行（実装・テスト・コミット）
+        ↓
+5. results/YYYYMMDD-HHMM-task-result.md を生成
+        ↓
+6. CHANGELOG.md を更新
+        ↓
+7. 人間が results/ を確認して次の指示を出す
+```
+
+### ✅ ベストプラクティス
+
+**AIエージェント側:**
+- 指示ファイルを読んだら、その内容を削除せずそのまま残す
+- 結果ファイルは必ず生成する（失敗した場合も）
+- コードを変更したら必ず CHANGELOG.md を更新
+- 不明点がある場合は、結果ファイルに質問を記載
+
+**人間側:**
+- 指示は具体的かつ明確に書く
+- 1つの指示ファイルには1つのタスクのみ
+- 複雑なタスクは複数の指示ファイルに分割
+- 結果ファイルを確認したら、次の指示を出す
+
+### 🚨 注意事項
+
+- `instructions/` と `results/` フォルダは `.gitignore` に追加（個人的なやり取りなので）
+- 重要な情報は README.md や spec.md に反映する
+- 結果ファイルは定期的にアーカイブまたは削除して整理
+
 ## 🏗️ 技術スタック
 
 ### フロントエンド

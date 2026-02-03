@@ -47,3 +47,7 @@ yarn-error.log*
 # Gemini CLI
 .gemini-gui-logs/
 .gemini-gui-backups/
+
+# Local workflow (AI ↔ Human communication)
+instructions/
+results/
