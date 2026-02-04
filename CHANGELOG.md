@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+- **Issue追加**: セッションタイムアウト修正（応答遅延改善）
+  - Issue文書: `ISSUE_SESSION_TIMEOUT.md`
+  - Issueテンプレート: `.github/ISSUE_TEMPLATE/session_timeout_fix.md`
+  - 問題: メッセージ送信後の応答に約2分かかる
+  - 原因: `session_timeout_ms: 5000` (5秒) が短すぎる
+  - 対策: タイムアウトを 60秒に延長 + セッション再利用
+  - 期待効果: 2回目以降の応答が **5-10秒**（改善率 90%）
+  - 優先度: 🔴 High
+  - ステータス: 🟡 Open（ローカルPC実装待ち）
 - **🎨 アプリケーションメニュー追加** (2026-02-04)
   - メニューバーに「ファイル」→「終了」を追加 (Alt+F4)
   - 「編集」メニュー: 元に戻す、やり直す、切り取り、コピー、貼り付け、すべて選択
