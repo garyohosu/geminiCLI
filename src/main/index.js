@@ -7,7 +7,7 @@
  * - GeminiCLIManager の制御
  */
 
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const GeminiCLIManager = require('./gemini-cli-manager');
@@ -50,6 +50,64 @@ function logMain(message, meta) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('app:log', { ts, message, meta });
   }
+}
+
+/**
+ * アプリケーションメニューを作成
+ */
+function createMenu() {
+  const template = [
+    {
+      label: 'ファイル',
+      submenu: [
+        {
+          label: '終了',
+          accelerator: 'Alt+F4',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    },
+    {
+      label: '編集',
+      submenu: [
+        { label: '元に戻す', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
+        { label: 'やり直す', accelerator: 'CmdOrCtrl+Y', role: 'redo' },
+        { type: 'separator' },
+        { label: '切り取り', accelerator: 'CmdOrCtrl+X', role: 'cut' },
+        { label: 'コピー', accelerator: 'CmdOrCtrl+C', role: 'copy' },
+        { label: '貼り付け', accelerator: 'CmdOrCtrl+V', role: 'paste' },
+        { label: 'すべて選択', accelerator: 'CmdOrCtrl+A', role: 'selectAll' }
+      ]
+    },
+    {
+      label: '表示',
+      submenu: [
+        { label: '再読み込み', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+        { label: '強制再読み込み', accelerator: 'CmdOrCtrl+Shift+R', role: 'forceReload' },
+        { type: 'separator' },
+        { label: '実際のサイズ', accelerator: 'CmdOrCtrl+0', role: 'resetZoom' },
+        { label: '拡大', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
+        { label: '縮小', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
+        { type: 'separator' },
+        { label: '全画面表示', accelerator: 'F11', role: 'togglefullscreen' }
+      ]
+    }
+  ];
+
+  // 開発モードの場合は開発者ツールメニューを追加
+  if (isDev) {
+    template.push({
+      label: '開発',
+      submenu: [
+        { label: '開発者ツール', accelerator: 'F12', role: 'toggleDevTools' }
+      ]
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 }
 
 /**
@@ -427,6 +485,7 @@ function setupGeminiEventHandlers() {
 app.whenReady().then(() => {
   initLogger();
   logMain('app:ready');
+  createMenu(); // メニューバーを作成
   createWindow();
   setupIPCHandlers();
 
